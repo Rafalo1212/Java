@@ -3,11 +3,17 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.JButton;
 
 import java.awt.GridLayout;
@@ -23,11 +29,28 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 import javax.swing.JLabel;
+
 import java.awt.Font;
+import java.awt.FlowLayout;
+import java.util.Hashtable;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Handler;
+
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.RowSpec;
+
+import javax.swing.JSlider;
 
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame{
 
 	private JPanel contentPane;
 	private JPanel cards;
@@ -57,6 +80,17 @@ public class MainWindow extends JFrame {
 	private final JButton mdBtn = new JButton("ŒREDNIA (25x25)");
 	private final JButton bgBtn = new JButton("DU¯A (40x40)");
 	private final JButton backBtn2 = new JButton("WSTECZ");
+	private final JButton startGameBtn = new JButton("START");
+	private final JButton exitGameBtn = new JButton("EXIT");
+	DrawRect rectArray[][];
+	JSlider slider;
+	Timer timer = new Timer();
+	public int posX;
+	public int posY;
+	public int iterator;
+	public int iterator_limit;
+	public int direction;
+	public boolean safe = false;
 	
 	/**
 	 * Launch the application.
@@ -74,6 +108,52 @@ public class MainWindow extends JFrame {
 		});
 	}
 
+	
+	public class DrawRect extends JPanel{
+		private int posX;
+		private int posY;
+		private int edge;
+		private Color col = Color.LIGHT_GRAY;
+		@Override
+		public void paint(Graphics g) {
+		      super.paint(g);
+		      
+		      g.setColor(col);
+		      g.fillRect(posX, posY, edge, edge);
+		 
+		   }
+
+		public int getPosX() {
+			return posX;
+		}
+
+		public void setPosX(int posX) {
+			this.posX = posX;
+		}
+
+		public int getPosY() {
+			return posY;
+		}
+
+		public void setPosY(int posY) {
+			this.posY = posY;
+		}
+
+		public int getEdge() {
+			return edge;
+		}
+
+		public void setEdge(int edge) {
+			this.edge = edge;
+		}
+		
+		public void setCol(Color col){
+			this.col = col;
+		}
+	}
+	
+	
+	
 	/**
 	 * Create the frame.
 	 */
@@ -146,9 +226,71 @@ public class MainWindow extends JFrame {
 		gbc_btnNewButton_2.insets = new Insets(0, 0, 5, 0);
 		gbc_btnNewButton_2.gridx = 0;
 		gbc_btnNewButton_2.gridy = 2;
+		
+		
+		// // // // // // // // // // // // // // // // // // //
 		startBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				layout.show(cards, GAMEPANEL);
+				cardGame.setLayout(null);
+				cardGame.setFocusable(true);
+				cardGame.requestFocusInWindow();
+				cardGame.addKeyListener(new KeyListener(){
+					  @Override
+	                    public void keyTyped(KeyEvent e) {}
+
+	                    @Override
+	                    public void keyReleased(KeyEvent e) {}
+
+	                    @Override
+	                    public void keyPressed(KeyEvent e) {
+	                    	int key = e.getKeyCode();
+	                		
+	                		switch(key){
+	                			case KeyEvent.VK_LEFT:
+	                				if(direction != 2 && safe == true){
+	                					direction = 4;
+	                					safe = false;
+	                				}
+	                				break;
+	                			case KeyEvent.VK_UP:
+	                				if(direction != 3 && safe == true){
+	                					direction = 1;
+	                					safe = false;
+	                				}
+	                				break;
+	                			case KeyEvent.VK_RIGHT:
+	                				if(direction != 4 && safe == true){
+	                					direction = 2;
+	                					safe = false;
+	                				}
+	                				break;
+	                			case KeyEvent.VK_DOWN:
+	                				if(direction != 1 && safe == true){
+	                					direction = 3;
+	                					safe = false;
+	                				}
+	                				break;
+	                		}
+	                		
+	                    }
+				});
+				int size = Definitions.getGRIDSIZE();
+				int gSize = Definitions.getGSIZE();
+				int edge = (800/size)-5;
+				getContentPane().setLayout(null);
+				
+				rectArray = new DrawRect[size][size];
+				for(int i = 0; i < size; i++){
+					for(int j = 0; j < size; j++){
+					rectArray[i][j] = new DrawRect();
+					rectArray[i][j].setBounds(50+i*(edge+5),20+j*(edge+5),edge,edge);
+					rectArray[i][j].setEdge(edge);
+					//rect.setBounds(50+i*(edge+5),20+j*(edge+5), edge, edge);
+					cardGame.add(rectArray[i][j]);
+					}
+				}
+				
 			}
 		});
 		startBtn.setBackground(Color.BLACK);
@@ -163,9 +305,71 @@ public class MainWindow extends JFrame {
 		exitBtn.setBackground(Color.BLACK);
 		exitBtn.setForeground(Color.WHITE);
 		cardMenu.add(exitBtn, gbc_btnNewButton_5);
+		cardGame.setBackground(Color.GRAY);
 		
 		//////////////////////////////////////
 		cards.add(cardGame, GAMEPANEL);
+		cardGame.setLayout(null);
+		
+		startGameBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				int size = Definitions.getGRIDSIZE();
+				int edge = (800/size)-5;
+				DrawRect snake = new DrawRect();
+				snake.setCol(Color.RED);
+				snake.setEdge(edge);
+				posX = 50+(size/2-1)*(edge+5);
+				posY = 20+(size/2-1)*(edge+5);
+				snake.setBounds(posX, posY, edge, edge);
+				cardGame.add(snake);
+				snake.repaint();
+				timer.schedule(myTask, 50, 50);
+				
+				iterator = 0;
+				iterator_limit = 10;
+				
+				cardGame.requestFocus();
+				
+				///////////////////////////////////////////////////////////////////////////
+			}
+			
+	
+			
+		});
+		startGameBtn.setSize(150,75);
+		startGameBtn.setMaximumSize(getSize());
+		startGameBtn.setBounds(945, 100, 150, 75);
+		cardGame.add(startGameBtn);
+		exitGameBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.exit(0);
+			}
+		});
+		exitGameBtn.setSize(150,75);
+		exitGameBtn.setMaximumSize(getSize());
+		exitGameBtn.setBounds(945, 400, 150, 75);
+		cardGame.add(exitGameBtn);
+		
+		slider = new JSlider(JSlider.HORIZONTAL, 1, 10, Definitions.getDIFFICULTY());
+		slider.setBounds(930, 660, 200, 50);
+		slider.setMajorTickSpacing(1);
+		slider.setPaintTicks(true);
+		Hashtable labelTable = new Hashtable();
+		labelTable.put(new Integer(1), new JLabel("£atwy"));
+		labelTable.put(new Integer(5), new JLabel("Œredni"));
+		labelTable.put(new Integer(10), new JLabel("Trudny"));
+		slider.setLabelTable(labelTable);
+		slider.setPaintLabels(true);
+		slider.addChangeListener(new ChangeListener() {
+		      public void stateChanged(ChangeEvent e) {
+		        Definitions.setDIFFICULTY(slider.getValue());
+		        iterator = 0;
+		        iterator_limit = 10 - slider.getValue();
+		        cardGame.requestFocus();
+		      }
+		    });
+		cardGame.add(slider);
 		
 		//////////////////////////////////////
 		cards.add(cardDiff, DIFFPANEL);
@@ -235,14 +439,14 @@ public class MainWindow extends JFrame {
 		
 		hardBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				Definitions.setDIFFICULTY(3);
+				Definitions.setDIFFICULTY(10);
 				obecnyLbl.setText("(OBECNIE: TRUDNY)");
 			}
 		});
 		
 		medBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				Definitions.setDIFFICULTY(2);
+				Definitions.setDIFFICULTY(5);
 				obecnyLbl.setText("(OBECNIE: \u015AREDNI)");
 			}
 		});
@@ -348,5 +552,56 @@ public class MainWindow extends JFrame {
 		layout.show(cards, MENUPANEL);
 		
 	}
-
+	
+	TimerTask myTask = new TimerTask(){
+		@Override
+		public void run(){
+			int size = Definitions.getGRIDSIZE();
+			int edge = (800/size)-5;
+			
+			int dif = Definitions.getDIFFICULTY();
+			iterator = (iterator + 1) % 11;
+			if(iterator >= iterator_limit){
+				System.out.println(posX + " " + posY);
+				DrawRect clear = new DrawRect();
+				clear.setCol(Color.LIGHT_GRAY);
+				clear.setEdge(edge);
+				clear.setBounds(posX, posY, edge, edge);
+				cardGame.add(clear);
+				clear.repaint();
+				
+				switch(direction){
+				case 2:
+					posX = (posX + (edge+5));
+					if(posX > (50 + (size-1)*(edge+5)))
+						posX = 50;
+					break;
+				case 4:
+					posX = (posX - (edge+5));
+					if(posX < 50)
+						posX = 50 + (size-1)*(edge+5);
+					break;
+				case 1:
+					posY = (posY - (edge+5));
+					if(posY < 20)
+						posY = 20 + (size-1)*(edge+5);
+					break;
+				case 3:
+					posY = (posY + (edge+5));
+					if(posY > 20 + (size-1)*(edge+5))
+						posY = 20;
+				}
+				safe = true;
+				
+				DrawRect snake = new DrawRect();
+				snake.setCol(Color.RED);
+				snake.setEdge(edge);
+				snake.setBounds(posX, posY, edge, edge);
+				cardGame.add(snake);
+				snake.repaint();
+				iterator = 0;
+			}
+		}
+	};
+	
 }
