@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -32,13 +33,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import java.awt.Font;
 import java.awt.FlowLayout;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Handler;
+import java.util.*;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -85,12 +89,18 @@ public class MainWindow extends JFrame{
 	DrawRect rectArray[][];
 	JSlider slider;
 	Timer timer = new Timer();
+	public int randPosX;
+	public int randPosY;
 	public int posX;
 	public int posY;
 	public int iterator;
 	public int iterator_limit;
 	public int direction;
+	public LinkedList<DrawRect> snake = new LinkedList<DrawRect>();
+	public DrawRect food = new DrawRect();
 	public boolean safe = false;
+	public boolean isFood = false;
+	public Random generator = new Random();
 	
 	/**
 	 * Launch the application.
@@ -107,7 +117,6 @@ public class MainWindow extends JFrame{
 			}
 		});
 	}
-
 	
 	public class DrawRect extends JPanel{
 		private int posX;
@@ -167,6 +176,7 @@ public class MainWindow extends JFrame{
 		contentPane.setLayout(new GridLayout(0, 1, 0, 0));
 		setUndecorated(true);
 		cards = new JPanel(layout);
+		
 		
 		/////////////////////////////////////////////
 		cards.add(cardMenu, MENUPANEL);
@@ -278,18 +288,21 @@ public class MainWindow extends JFrame{
 				int size = Definitions.getGRIDSIZE();
 				int gSize = Definitions.getGSIZE();
 				int edge = (800/size)-5;
-				getContentPane().setLayout(null);
-				
+
 				rectArray = new DrawRect[size][size];
 				for(int i = 0; i < size; i++){
 					for(int j = 0; j < size; j++){
 					rectArray[i][j] = new DrawRect();
 					rectArray[i][j].setBounds(50+i*(edge+5),20+j*(edge+5),edge,edge);
 					rectArray[i][j].setEdge(edge);
+					//rectArray[i][j].setVisible(false);
 					//rect.setBounds(50+i*(edge+5),20+j*(edge+5), edge, edge);
 					cardGame.add(rectArray[i][j]);
 					}
 				}
+				getContentPane().setLayout(null);
+				
+				
 				
 			}
 		});
@@ -314,20 +327,28 @@ public class MainWindow extends JFrame{
 		startGameBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				
+				startGameBtn.setEnabled(false);
 				int size = Definitions.getGRIDSIZE();
 				int edge = (800/size)-5;
-				DrawRect snake = new DrawRect();
-				snake.setCol(Color.RED);
-				snake.setEdge(edge);
-				posX = 50+(size/2-1)*(edge+5);
-				posY = 20+(size/2-1)*(edge+5);
-				snake.setBounds(posX, posY, edge, edge);
-				cardGame.add(snake);
-				snake.repaint();
+				
+				
+				// creating snake
+				DrawRect snakeHead = new DrawRect();
+				snake.add(snakeHead);
+				snakeHead.setCol(Color.RED);
+				snakeHead.setEdge(edge);
+				//posX = 50+(size/2-1)*(edge+5);
+				//posY = 20+(size/2-1)*(edge+5);
+				posX = rectArray[(int)size/2][(int)size/2].getBounds().x;
+				posY = rectArray[(int)size/2][(int)size/2].getBounds().y;
+				snakeHead.setBounds(posX, posY, edge, edge);
+				cardGame.add(snakeHead);
+				snakeHead.repaint();
+				
+				
+				
 				timer.schedule(myTask, 50, 50);
 				
-				iterator = 0;
-				iterator_limit = 10;
 				
 				cardGame.requestFocus();
 				
@@ -433,6 +454,9 @@ public class MainWindow extends JFrame{
 		easyBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Definitions.setDIFFICULTY(1);
+				slider.setValue(Definitions.getDIFFICULTY());
+		        iterator = 0;
+		        iterator_limit = 10 - slider.getValue();
 				obecnyLbl.setText("(OBECNIE: \u0141ATWY)");
 			}
 		});
@@ -440,6 +464,9 @@ public class MainWindow extends JFrame{
 		hardBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Definitions.setDIFFICULTY(10);
+				slider.setValue(Definitions.getDIFFICULTY());
+		        iterator = 0;
+		        iterator_limit = 10 - slider.getValue();
 				obecnyLbl.setText("(OBECNIE: TRUDNY)");
 			}
 		});
@@ -447,6 +474,9 @@ public class MainWindow extends JFrame{
 		medBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Definitions.setDIFFICULTY(5);
+				slider.setValue(Definitions.getDIFFICULTY());
+		        iterator = 0;
+		        iterator_limit = 10 - slider.getValue();
 				obecnyLbl.setText("(OBECNIE: \u015AREDNI)");
 			}
 		});
@@ -560,15 +590,35 @@ public class MainWindow extends JFrame{
 			int edge = (800/size)-5;
 			
 			int dif = Definitions.getDIFFICULTY();
+			
+			/*cardGame.add(food);
+			food.repaint();
+			for(int i = 0; i < snake.size(); ++i) {
+				cardGame.add(snake.get(i));
+				snake.get(i).repaint();
+			}*/
+			
 			iterator = (iterator + 1) % 11;
 			if(iterator >= iterator_limit){
-				System.out.println(posX + " " + posY);
+				System.out.println(snake.peek().getBounds().x + " " + food.getBounds().x);
 				DrawRect clear = new DrawRect();
 				clear.setCol(Color.LIGHT_GRAY);
 				clear.setEdge(edge);
 				clear.setBounds(posX, posY, edge, edge);
 				cardGame.add(clear);
 				clear.repaint();
+				if(snake.peek().getBounds().x == food.getBounds().x && snake.peek().getBounds().y == food.getBounds().y) {
+					DrawRect newSnake = new DrawRect();
+					newSnake.setCol(Color.RED);
+					newSnake.setEdge(edge);
+					newSnake.setBounds(snake.get(snake.size()-1).getBounds().x, snake.get(snake.size()-1).getBounds().y, edge, edge);
+					snake.addLast(newSnake);
+					isFood = false;
+					//food.setCol(Color.LIGHT_GRAY);
+					//food.setEdge(edge);
+					//cardGame.add(food);
+					//food.repaint();
+				}
 				
 				switch(direction){
 				case 2:
@@ -593,12 +643,55 @@ public class MainWindow extends JFrame{
 				}
 				safe = true;
 				
+
+				snake.getLast().setBounds(posX, posY, edge, edge);
+				snake.push(snake.getLast());
+				snake.removeLast();
+				for(int i = 0; i < snake.size(); ++i) {
+					if(i < snake.size()-1)
+						if(snake.getFirst().getBounds().x == snake.get(i+1).getBounds().x && snake.getFirst().getBounds().y == snake.get(i+1).getBounds().y) {
+							JOptionPane.showMessageDialog(cardGame, "GAME OVER");
+							System.exit(0);
+						}
+					snake.get(i).setCol(Color.RED);
+					snake.get(i).setEdge(edge);
+					cardGame.add(snake.get(i));
+					snake.get(i).repaint();
+				}
+				
+				/*
+				// creating snake
 				DrawRect snake = new DrawRect();
 				snake.setCol(Color.RED);
 				snake.setEdge(edge);
 				snake.setBounds(posX, posY, edge, edge);
 				cardGame.add(snake);
 				snake.repaint();
+				*/
+				
+				// creating food
+				if(!isFood) {
+					isFood = true;
+					randPosX = size - 1 - generator.nextInt(size);
+					randPosY = size - 1 - generator.nextInt(size);
+					//if(!snake.isEmpty())
+						//while (rectArray[randPos][randPos].getBounds().x == snake.peek().getBounds().x && rectArray[randPos][randPos].getBounds().y == snake.peek().getBounds().y)
+							//randPos = size - generator.nextInt(size);
+					food.setCol(Color.GREEN);
+					food.setEdge(edge);
+					food.setBounds(rectArray[randPosX][randPosY].getBounds());
+					cardGame.add(food);
+					food.repaint();
+				}
+				else {
+					DrawRect food = new DrawRect();
+					food.setCol(Color.GREEN);
+					food.setEdge(edge);
+					food.setBounds(rectArray[randPosX][randPosY].getBounds());
+					cardGame.add(food);
+					food.repaint();
+				}
+				
 				iterator = 0;
 			}
 		}
