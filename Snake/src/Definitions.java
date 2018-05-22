@@ -5,8 +5,8 @@ public class Definitions extends MainWindow {
 	private final static int HEIGHT = 900;
 	private final static int GSIZE = 800;
 	
-	private static int DIFFICULTY = 1;
-	private static int GRIDSIZE = 10;
+	private static int DIFFICULTY = 10;
+	private static int GRIDSIZE = 40;
 	
 	public static int getWIDTH() {
 		return WIDTH;

@@ -67,6 +67,7 @@ public class MainWindow extends JFrame{
 	JPanel cardDiff = new JPanel();
 	JPanel cardSize = new JPanel();
 	CardLayout layout = new CardLayout();
+	private final JButton backBtn3 = new JButton("WSTECZ");
 	private final JButton startBtn = new JButton("START");
 	private final JButton diffBtn = new JButton("POZIOM TRUDNOŒCI");
 	private final JButton sizeBtn = new JButton("ROZMIAR SIATKI");
@@ -239,6 +240,18 @@ public class MainWindow extends JFrame{
 		
 		
 		// // // // // // // // // // // // // // // // // // //
+		
+		backBtn3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				layout.show(cards, MENUPANEL);
+			}
+		});
+		backBtn3.setForeground(Color.WHITE);
+		backBtn3.setBackground(Color.BLACK);
+		backBtn3.setBounds(945, 244, 150, 80);
+		cardGame.add(backBtn3);
+		
+		
 		startBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				layout.show(cards, GAMEPANEL);
@@ -328,6 +341,8 @@ public class MainWindow extends JFrame{
 			public void actionPerformed(ActionEvent arg0) {
 				
 				startGameBtn.setEnabled(false);
+				backBtn3.setEnabled(false);
+				
 				int size = Definitions.getGRIDSIZE();
 				int edge = (800/size)-5;
 				
@@ -391,6 +406,7 @@ public class MainWindow extends JFrame{
 		      }
 		    });
 		cardGame.add(slider);
+		
 		
 		//////////////////////////////////////
 		cards.add(cardDiff, DIFFPANEL);
@@ -604,15 +620,21 @@ public class MainWindow extends JFrame{
 				DrawRect clear = new DrawRect();
 				clear.setCol(Color.LIGHT_GRAY);
 				clear.setEdge(edge);
-				clear.setBounds(posX, posY, edge, edge);
+				clear.setBounds(posX, posY,edge,edge);
 				cardGame.add(clear);
 				clear.repaint();
 				if(snake.peek().getBounds().x == food.getBounds().x && snake.peek().getBounds().y == food.getBounds().y) {
+					food = new DrawRect();
+					cardGame.add(food);
+					food.repaint();
 					DrawRect newSnake = new DrawRect();
 					newSnake.setCol(Color.RED);
 					newSnake.setEdge(edge);
-					newSnake.setBounds(snake.get(snake.size()-1).getBounds().x, snake.get(snake.size()-1).getBounds().y, edge, edge);
+					//newSnake.setBounds(snake.get(snake.size()-1).getBounds().x, snake.get(snake.size()-1).getBounds().y, edge, edge);
+					newSnake.setBounds(posX, posY, edge, edge);
 					snake.addLast(newSnake);
+					cardGame.add(newSnake);
+					newSnake.repaint();
 					isFood = false;
 					//food.setCol(Color.LIGHT_GRAY);
 					//food.setEdge(edge);
@@ -643,7 +665,11 @@ public class MainWindow extends JFrame{
 				}
 				safe = true;
 				
-
+				DrawRect cleartmp = snake.getLast();
+				cleartmp.setCol(Color.LIGHT_GRAY);
+				cleartmp.setEdge(edge);
+				cardGame.add(cleartmp);
+				cleartmp.repaint();
 				snake.getLast().setBounds(posX, posY, edge, edge);
 				snake.push(snake.getLast());
 				snake.removeLast();
@@ -696,5 +722,4 @@ public class MainWindow extends JFrame{
 			}
 		}
 	};
-	
 }
